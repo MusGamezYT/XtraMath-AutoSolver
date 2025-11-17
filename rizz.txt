@@ -1,9 +1,11 @@
+// VISIT MusGamezYT.github.io/Xtramath-AutoSolver/download.html for instructions
+
 // ==UserScript==
 // @name         XtraMath Auto-Solver (Keypad Clicker)
 // @namespace    http://tampermonkey.net/
 // @version      1.12
 // @description  Automatically solves XtraMath problems by finding and clicking the number buttons on the virtual keypad. Fixed race condition.
-// @author       Your Name (Fixed by Gemini)
+// @author       MusGamezYT (github.com/musGamezYT)
 // @match        https://xtramath.org/app/student/practice
 // @grant        none
 // ==/UserScript==
