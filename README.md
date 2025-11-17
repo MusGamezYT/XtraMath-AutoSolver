@@ -2,6 +2,8 @@ This script was made to solve xtramath questions automaticly
 
 View video instructions to install: https://MusGamezYT.github.io/Xtramath-AutoSolver/download.html
 
+Website: https://MusGamezYT.github.io/Xtramath-AutoSolver
+
 Installation
 
 First download tamper monkey from the web store
