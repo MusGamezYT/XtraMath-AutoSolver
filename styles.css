@@ -21,6 +21,7 @@ body {
   padding: 14px 16px;
   text-decoration: none;
   font-size: 17px;
+    transition: background 0.4s ease, color 0.4 ease;
 }
 
 .navbar a:hover {
@@ -45,3 +46,4 @@ button {
     left: 50%;
 
 }
+
