@@ -1,0 +1,166 @@
+// ==UserScript==
+// @name         XtraMath Auto-Solver (Keypad Clicker)
+// @namespace    http://tampermonkey.net/
+// @version      1.11
+// @description  Automatically solves XtraMath problems by finding and clicking the number buttons on the virtual keypad.
+// @author       Your Name (Fixed by Gemini)
+// @match        https://xtramath.org/app/student/practice
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    console.log('XtraMath Auto-Solver Loaded. (Version 1.11 - Removed Submit Button Click)');
+
+    // Configuration for the delay between clicking digits (in milliseconds)
+    const CLICK_DELAY = 150; // Delay for stability
+
+    /**
+     * Finds the virtual keypad button corresponding to the given digit and clicks it.
+     * @param {string} digit - The digit ('0' through '9') to click.
+     * @returns {boolean} True if the button was found and clicked, false otherwise.
+     */
+    function clickKeypadButton(digit) {
+        // Find the button whose text content exactly matches the digit
+        const button = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim() === digit);
+
+        if (button) {
+            // --- NEW DEBUG LOGGING ---
+            console.log(`Clicking keypad button: ${digit}`, button);
+            // --- END NEW DEBUG LOGGING ---
+
+            // Simulate a full mouse click event sequence for maximum compatibility
+            button.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+            button.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+            button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            return true;
+        }
+        console.error(`Keypad button for digit ${digit} not found.`);
+        return false;
+    }
+
+    /**
+     * Tries to find and solve the math problem on the screen using keypad clicks.
+     */
+    function attemptSolve() {
+        // --- Note: These selectors are very specific and may break if XtraMath updates its website ---
+        const firstNumberParent = document.querySelector('.MuiBox-root.css-1wzifj2');
+        const secondNumberParent = document.querySelector('.MuiBox-root.css-1en80zi');
+        const operatorParent = document.querySelector('.MuiBox-root.css-17yh7mm');
+
+        const firstNumberElement = firstNumberParent ? firstNumberParent.querySelector('.MuiTypography-root.MuiTypography-body1.css-1ha0g3v') : null;
+        const secondNumberElement = secondNumberParent ? secondNumberParent.querySelector('.MuiTypography-root.MuiTypography-body1.css-1ha0g3v') : null;
+        const operatorElement = operatorParent ? operatorParent.querySelector('.MuiTypography-root.MuiTypography-body1.css-1qdolyk') : null;
+
+        // Only proceed if all elements were found
+        if (firstNumberElement && secondNumberElement && operatorElement) {
+            // Check if the input field already has a value (meaning we've already answered)
+            const inputElement = document.querySelector('input');
+            if (inputElement && inputElement.value.length > 0) {
+                 // console.log("Answer already entered. Waiting for next problem.");
+                 return;
+            }
+
+            console.log('Problem elements found. Attempting to solve...');
+
+            const num1 = parseInt(firstNumberElement.textContent, 10);
+            const num2 = parseInt(secondNumberElement.textContent, 10);
+            const operatorText = operatorElement.textContent.trim();
+            let operator;
+
+            // Handle visual operators (×, ÷, −)
+            switch (operatorText) {
+                case '+': operator = '+'; break;
+                case '-':
+                case '−': // Minus sign (U+2212)
+                    operator = '-';
+                    break;
+                case '*':
+                case 'x':
+                case 'X':
+                case '×': // Multiplication sign (U+00D7)
+                    operator = '*';
+                    break;
+                case '/':
+                case '÷': // Division sign (U+00F7)
+                    operator = '/';
+                    break;
+                default:
+                    console.log('Unknown operator text:', operatorText);
+                    return;
+            }
+
+            console.log(`Parsed problem: ${num1} ${operator} ${num2}`);
+
+            let finalAnswer;
+
+            // --- REVISED CALCULATION LOGIC (Enforcing floor for safety) ---
+            switch (operator) {
+                case '+':
+                    finalAnswer = Math.floor(num1 + num2);
+                    break;
+                case '-':
+                    finalAnswer = Math.floor(num1 - num2);
+                    console.log(`Subtraction check: ${num1} - ${num2} = ${finalAnswer}`);
+                    break;
+                case '*':
+                    finalAnswer = Math.floor(num1 * num2);
+                    break;
+                case '/':
+                    if (num2 === 0) {
+                        console.error("Error: Division by zero encountered.");
+                        return;
+                    }
+                    // Use Math.round for fact practice, ensuring integer results.
+                    finalAnswer = Math.round(num1 / num2);
+                    break;
+                default:
+                    console.error("Internal error: Unknown operator after parsing.");
+                    return;
+            }
+            // --- END REVISED CALCULATION LOGIC ---
+
+            if (isNaN(finalAnswer) || !isFinite(finalAnswer)) {
+                console.log('Calculation result is invalid. Aborting.');
+                return;
+            }
+
+            const resultString = finalAnswer.toString();
+            console.log('Calculated Result:', resultString);
+
+            // --- 1. Enter the digits by clicking the keypad buttons ---
+            const digits = resultString.split('');
+            let delay = 0;
+
+            digits.forEach((digit) => {
+                // Schedule each click with an increasing delay
+                setTimeout(() => {
+                    clickKeypadButton(digit);
+                }, delay);
+                delay += CLICK_DELAY;
+            });
+
+            // NOTE: Removed the submission click block, relying on the last digit input to auto-submit.
+        }
+    }
+
+    // --- Use MutationObserver instead of setInterval for efficiency ---
+    const observer = new MutationObserver((mutations) => {
+        // Debounce the changes to avoid running the solver multiple times for small DOM updates
+        let timer;
+        clearTimeout(timer);
+        timer = setTimeout(attemptSolve, 100); // Increased debounce time for stability
+    });
+
+    // Start observing the main body of the page for any changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true // Check attributes too, as class names change
+    });
+
+    // Run an initial check in case the page is already loaded
+    setTimeout(attemptSolve, 500);
+
+})();
