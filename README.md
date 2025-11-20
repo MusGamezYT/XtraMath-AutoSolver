@@ -1,9 +1,9 @@
-# Xtramath auto solver
+# XtraSolver
 This is made to help children to complete xtramath and be very happy
 
 Website: https://musgamezyt.github.io/XtraMath-AutoSolver/
 
-# Xtramath Auto Solver – Installation Guide
+# XtraSolver – Installation Guide
 
 > **Important:** Use this very secretly if you are in school! 
 
